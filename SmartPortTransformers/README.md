@@ -1,5 +1,5 @@
 # SmartPort Transformers
-This a Java project with a generic transformer which consumes messages from an specific AMQP queue and transforme the to Java Map.
+This is a Java project with a generic transformer which consumes messages from an specific AMQP queue and transforms them to Java Map.
 
 ## Steps
 
@@ -21,7 +21,7 @@ The first two arguments are mandatory, `inputType` and `inputQueue`.
 
 In order to execute the transformer, you can run it in the IDE and set the arguments (it depends on your IDE).
 
-Another alternative might be compile the project as a single jar file:
+Another alternative might be compile the project as a single JAR file:
 - Run `mvn package` to compile the project
-- The resulted jar file could be executed as:
+- The resulted JAR file could be executed as:
      - `java -jar SmartPortTransformer.jar json json-events map-events localhost` 
