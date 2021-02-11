@@ -1,4 +1,4 @@
-// AirQualityMeasurement event type to simulate
+// AirQualityMeasurement event type
 
 @public @buseventtype create schema AirQualityMeasurement as (PM10 integer, PM25 Double, stationId integer)
 
