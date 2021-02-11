@@ -1,5 +1,5 @@
 # SmartPort Actions
-This a Java project with a series of actions to be performed when an alert is detected by the CEP engine.
+This is a Java project with a series of actions to be performed when an alert is detected by the CEP engine.
 
 ## Steps
 
@@ -19,16 +19,16 @@ The first argument is mandatory, `inputQueue`. The host as default will be `loca
 
 In order to execute the transformer, you can run it in the IDE and set the arguments (it depends on your IDE).
 
-Another alternative might be compile the project as a single jar file:
+Another alternative might be compile the project as a single JAR file:
 - Run `mvn package` to compile the project
-- The resulted jar file could be executed as:
+- The resulted JAR file could be executed as:
      - `java -jar SmartPortActions.jar output-alerts localhost` 
 
 ## Actions
 
 When an alert is consumed, it will check which action has to be performed. Right now, the implemented actions are:
 
-- File: Insert the detected alert into a text file.
-- NoSQL Database: Insert the detected alert into a Mongo database. 
+- File: Inserts the detected alert into a text file.
+- NoSQL Database: Inserts the detected alert into a Mongo database. 
 
 These actions are specified when you send the pattern to the `SmartPort CEP`. Further details are available at [SmartPortCEP](https://gitlab.com/ucase/interno/smartportcep).
