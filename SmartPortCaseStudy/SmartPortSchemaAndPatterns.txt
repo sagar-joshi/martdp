@@ -1,0 +1,55 @@
+// AirQualityMeasurement event type to simulate
+
+@public @buseventtype create schema AirQualityMeasurement as (PM10 integer, PM25 Double, stationId integer)
+
+
+// Dataflow to consume events from the AMQP broker
+
+create dataflow AMQPIncomingDataFlow AMQPSource -> outstream<AirQualityMeasurement> 
+{
+host: 'localhost',
+queueName: 'input-map',
+collector: {class: 'AMQPSerializer'},
+logMessages: true,
+declareAutoDelete: false,
+declareDurable: true
+}
+EventBusSink(outstream){}
+
+
+// Context Interval for batch windows
+
+@public create context IntervalSpanningSeconds start @now end after 3600 sec;
+
+
+// For each pollutant, we calculate the average in intervals of 1 hour.
+
+@Name('PM10_Avg1h_batch') @public context IntervalSpanningSeconds insert into PM10_Avg1h_batch select a1.stationId as stationId, avg(a1.PM10) as Value, count(*) as Total from AirQualityMeasurement a1 group by a1.stationId output snapshot when terminated;
+
+@Name('PM25_Avg1h_batch') @public context IntervalSpanningSeconds insert into PM25_Avg1h_batch select a1.stationId as stationId, avg(a1.PM25) as Value, count(*) as Total from AirQualityMeasurement a1 group by a1.stationId output snapshot when terminated;
+
+
+// For each pollutant, we create sliding windows that use the previous averages in order to calculate the 24-hour pollutant average value
+
+@Name('PM10_Avg24h_slide') @public @buseventtype insert into PM10_Avg24h_slide select a1.stationId as stationId, avg(a1.Value) as Value, a1.Total as Total from PM10_Avg1h_batch#time(24 hour) a1 group by a1.stationId;
+
+@Name('PM25_Avg24h_slide') @public @buseventtype insert into PM25_Avg24h_slide select a1.stationId as stationId, avg(a1.Value) as Value, a1.Total as Total from PM25_Avg1h_batch#time(24 hour) a1 group by a1.stationId;
+
+
+// Using the previous 24-hour average values, we calculate the pollutant alert level (Good/Moderate/Poor/Very Poor) for PM10 and PM2.5.
+
+@Tag(name='action', value='file') @Tag(name='name', value='alert.txt') @Name('PM10_Good') @public @buseventtype insert into PollutantLevel select 'PM10' as kndAlrtDscr, 1 as AlertLevel, a1.stationId as stationId, a1.Value as Value  from pattern [every a1 = PM10_Avg24h_slide (a1.Value >= 0 and a1.Value < 25)];
+
+@Tag(name='action', value='file') @Tag(name='name', value='alert.txt') @Name('PM10_Moderate') @public @buseventtype insert into PollutantLevel select 'PM10' as kndAlrtDscr, 2 as AlertLevel, a1.stationId as stationId, a1.Value as Value  from pattern [every a1 = PM10_Avg24h_slide (a1.Value >= 25 and a1.Value < 50)];
+
+@Tag(name='action', value='file') @Tag(name='name', value='alert.txt') @Name('PM10_Poor') @public @buseventtype insert into PollutantLevel select 'PM10' as kndAlrtDscr, 3 as AlertLevel, a1.stationId as stationId, a1.Value as Value  from pattern [every a1 = PM10_Avg24h_slide (a1.Value >= 50 and a1.Value < 70)];
+
+@Tag(name='action', value='file') @Tag(name='name', value='alert.txt') @Name('PM10_VeryPoor') @public @buseventtype insert into PollutantLevel select 'PM10' as kndAlrtDscr, 4 as AlertLevel, a1.stationId as stationId, a1.Value as Value from pattern [every a1 = PM10_Avg24h_slide (a1.Value >= 70)];
+
+@Tag(name='action', value='file') @Tag(name='name', value='alert.txt') @Name('PM25_Good') @public @buseventtype insert into PollutantLevel select 'PM2.5' as kndAlrtDscr, 1 as AlertLevel, a1.stationId as stationId, a1.Value as Value from pattern [every a1 = PM25_Avg24h_slide (a1.Value >= 0 and a1.Value < 8)];
+
+@Tag(name='action', value='file') @Tag(name='name', value='alert.txt') @Name('PM25_Moderate') @public @buseventtype insert into PollutantLevel select 'PM2.5' as kndAlrtDscr, 2 as AlertLevel, a1.stationId as stationId, a1.Value as Value  from pattern [every a1 = PM25_Avg24h_slide (a1.Value >= 8 and a1.Value < 25)];
+
+@Tag(name='action', value='file') @Tag(name='name', value='alert.txt') @Name('PM25_Poor') @public @buseventtype insert into PollutantLevel select 'PM2.5' as kndAlrtDscr, 3 as AlertLevel, a1.stationId as stationId, a1.Value as Value from pattern [every a1 = PM25_Avg24h_slide (a1.Value >= 25 and a1.Value < 40)];
+
+@Tag(name='action', value='file') @Tag(name='name', value='alert.txt') @Name('PM25_VeryPoor') @public @buseventtype insert into PollutantLevel select 'PM2.5' as kndAlrtDscr, 4 as AlertLevel, a1.stationId as stationId, a1.Value as Value from pattern [every a1 = PM25_Avg24h_slide (a1.Value >= 40)];

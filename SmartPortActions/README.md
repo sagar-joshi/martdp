@@ -31,4 +31,4 @@ When an alert is consumed, it will check which action has to be performed. Right
 - File: Insert the detected alert into a text file.
 - NoSQL Database: Insert the detected alert into a Mongo database. 
 
-These actions are specified when you send the pattern to the `SmartPort CEP`. Further details are available at [SmartPortCEP](https://gitlab.com/ucase/interno/smartportcep).
+These actions are specified when you send the pattern to the `SmartPort CEP`. Further details are available at [SmartPortCEP](https://gitlab.com/ucase/david-corral/SmartHealthyPort/-/tree/master/SmartPortCEP).
