@@ -42,6 +42,20 @@ The pattern above specifies that it has to be saved into a NoSQL database.  The 
 - `mongoURI` which specifies the mongo URI to connect (credentials included), in this case `mongodb+srv://<user>:<password>@<host>/test?retryWrites=true&w=majority`
 - `databaseName` which specifies the database where the alerts will be saved, in this case `alerts`
 
+Using this endopoint, `/pattern`, you can send more than one pattern to be deployed using semicolons (`;`) as separator:
+~~~~
+{
+    "pattern": "@public @buseventtype @name("pattern1") select * from Dummy;@public @buseventtype @name("pattern2") select current_timestamp from Dummy;"
+}
+~~~~
+
+Finally, in order to send `context interval`, as it is a EPL code of Esper, you can send them using this same endpoint:
+~~~~
+{
+    "pattern": "@public create context IntervalSpanningSeconds start @now end after 300 sec;"
+}
+~~~~
+
 ### POST /dataflow
 It receives an EPL dataflow code in JSON payload and deploys it in the CEP engine:
 ~~~~
