@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.TimeoutException;
 
 public class EventTransformer {
@@ -61,8 +62,9 @@ public class EventTransformer {
                 long receivedTime = System.currentTimeMillis();
                 //System.out.println(" [x] Received '" + message + "'");
                 Map eventMap = transformMessage(message, JSON, XML);
-                eventMap.put("receivedTime", receivedTime);
-                eventMap.put("transformedTime", System.currentTimeMillis());
+                System.out.println(eventMap.toString());
+                eventMap.put("recTime", receivedTime);
+                eventMap.put("transTime", System.currentTimeMillis());
                 sendEventMap(outputChannel, outputQueue, eventMap, message);
             };
             channel.basicConsume(inputQueue, true, deliverCallback, consumerTag -> {
@@ -82,6 +84,21 @@ public class EventTransformer {
      */
     public static Map transformMessage(String event, boolean JSON, boolean XML) {
         //System.out.println(" [x] Transforming message...");
+        //artificial delay
+        // Create a Random object
+        // Random random = new Random();
+
+        // // Generate a random delay duration between 0 and 3 milliseconds
+        // int delayDuration = random.nextInt(4); // Random number between 0 (inclusive) and 4 (exclusive)
+
+        // // Record the start time
+        // long startTime = System.currentTimeMillis();
+
+        // // Loop until the elapsed time reaches the delay duration
+        // while (System.currentTimeMillis() - startTime < delayDuration) {
+        //     // Consume CPU cycles without doing any work
+        //     // This loop does nothing but consumes CPU cycles
+        // }
         if (JSON)
             return new Gson().fromJson(event, Map.class);
         else if (XML)
